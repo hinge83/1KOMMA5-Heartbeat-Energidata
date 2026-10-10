@@ -1,0 +1,11 @@
+{
+  "domain": "heartbeat_comparison",
+  "name": "Heartbeat beslutninger (sammenligning)",
+  "version": "0.1.2",
+  "documentation": "https://community.developer.gridx.de/t/gridx-api-documentation/213",
+  "issue_tracker": "https://community.developer.gridx.de/",
+  "integration_type": "service",
+  "iot_class": "cloud_polling",
+  "config_flow": true,
+  "requirements": []
+}
