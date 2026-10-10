@@ -17,7 +17,7 @@ from .api import HeartbeatApiError, HeartbeatAuthError, HeartbeatClient
 from .const import CONF_SYSTEM_ID, DOMAIN, POLL_INTERVAL
 from datetime import timedelta
 
-PLATFORMS = [Platform.SENSOR]
+PLATFORMS = [Platform.SENSOR, Platform.SWITCH]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -57,8 +57,21 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     )
     # Failure of the optional live endpoint must not break existing decisions.
     await live_coordinator.async_refresh()
+    async def update_energy_management() -> bool:
+        try:
+            return await client.energy_management(entry.data[CONF_SYSTEM_ID])
+        except (HeartbeatAuthError, HeartbeatApiError, ClientError, TimeoutError) as err:
+            raise UpdateFailed("Kan ikke hente Energy Management-status") from err
+
+    energy_coordinator = DataUpdateCoordinator[bool](
+        hass, logger=logging.getLogger(__name__),
+        name=f"{DOMAIN}_energy_management", update_method=update_energy_management,
+        update_interval=timedelta(minutes=2),
+    )
+    await energy_coordinator.async_refresh()
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = {
         "decisions": coordinator, "live": live_coordinator,
+        "energy_management": energy_coordinator, "client": client,
     }
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
