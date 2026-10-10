@@ -15,6 +15,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 
 from .api import HeartbeatApiError, HeartbeatAuthError, HeartbeatClient
 from .const import CONF_SYSTEM_ID, DOMAIN, POLL_INTERVAL
+from datetime import timedelta
 
 PLATFORMS = [Platform.SENSOR]
 
@@ -40,7 +41,25 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         name=DOMAIN, update_method=update, update_interval=POLL_INTERVAL,
     )
     await coordinator.async_config_entry_first_refresh()
-    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
+
+    async def update_live() -> dict:
+        try:
+            return await client.live(entry.data[CONF_SYSTEM_ID])
+        except HeartbeatAuthError as err:
+            raise UpdateFailed("Live-data: godkendelse afvist") from err
+        except (HeartbeatApiError, ClientError, TimeoutError) as err:
+            raise UpdateFailed("Kunne ikke hente GridX live-data") from err
+
+    live_coordinator = DataUpdateCoordinator[dict](
+        hass, logger=logging.getLogger(__name__),
+        name=f"{DOMAIN}_live", update_method=update_live,
+        update_interval=timedelta(seconds=60),
+    )
+    # Failure of the optional live endpoint must not break existing decisions.
+    await live_coordinator.async_refresh()
+    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = {
+        "decisions": coordinator, "live": live_coordinator,
+    }
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
 

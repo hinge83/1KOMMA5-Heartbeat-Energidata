@@ -1,6 +1,6 @@
 """Read-only client for the legacy 1KOMMA5° gridX API.
 
-Only token, system list and optimization-decision GET requests are made.
+Only token, system list, live telemetry and optimization-decision GET requests are made.
 No API response or credentials are logged.
 """
 
@@ -93,4 +93,11 @@ class HeartbeatClient:
         data = await self._get(f"/systems/{system_id}/timeofuse/decisions")
         if not isinstance(data, dict) or not isinstance(data.get("decisions"), list):
             raise HeartbeatApiError("Uventet format for beslutninger")
+        return data
+
+    async def live(self, system_id: str) -> dict[str, Any]:
+        """Return legacy gridX live telemetry without guessing missing fields."""
+        data = await self._get(f"/systems/{system_id}/live")
+        if not isinstance(data, dict):
+            raise HeartbeatApiError("Uventet format for live-data")
         return data
