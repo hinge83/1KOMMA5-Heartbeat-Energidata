@@ -67,11 +67,13 @@ def _latest_past(events: list[dict], now: datetime) -> dict | None:
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
-    coordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinators = hass.data[DOMAIN][entry.entry_id]
+    coordinator = coordinators["decisions"]
     async_add_entities([
         DecisionSensor(coordinator, entry, "current"),
         DecisionSensor(coordinator, entry, "latest"),
         DecisionSensor(coordinator, entry, "count"),
+        *(LiveSensor(coordinators["live"], entry, key) for key in LIVE_SENSORS),
     ])
 
 
@@ -130,3 +132,51 @@ class DecisionSensor(CoordinatorEntity[DataUpdateCoordinator[dict]], SensorEntit
                  else _latest_past(events, now)) or {}
         return {"fra": event.get("start"), "til": event.get("end"),
                 "kode": event.get("case")}
+
+# The legacy gridX /live response uses these documented JSON fields.
+# Missing values remain unavailable rather than being reported as zero.
+LIVE_SENSORS = {
+    "production": ("Solproduktion", "power", "W"),
+    "consumption": ("Husforbrug", "power", "W"),
+    "grid": ("Netto neteffekt", "power", "W"),
+    "battery_power": ("Batterieffekt", "power", "W"),
+    "battery_soc": ("Batteriets ladestand", "battery", "%"),
+}
+
+
+class LiveSensor(CoordinatorEntity[DataUpdateCoordinator[dict]], SensorEntity):
+    """One raw live metric; avoid inventing zeroes for unavailable telemetry."""
+
+    _attr_has_entity_name = True
+    _attr_state_class = "measurement"
+
+    def __init__(self, coordinator: DataUpdateCoordinator[dict], entry: ConfigEntry, key: str) -> None:
+        super().__init__(coordinator)
+        self._key = key
+        title, device_class, unit = LIVE_SENSORS[key]
+        self._attr_unique_id = f"{entry.data[CONF_SYSTEM_ID]}_live_{key}"
+        self._attr_name = title
+        self._attr_device_class = device_class
+        self._attr_native_unit_of_measurement = unit
+        self._attr_device_info = {
+            "identifiers": {(DOMAIN, entry.data[CONF_SYSTEM_ID])},
+            "name": "1KOMMA5° Heartbeat / GridX",
+            "manufacturer": "1KOMMA5°",
+        }
+
+    @property
+    def native_value(self) -> float | None:
+        data = self.coordinator.data
+        if not isinstance(data, dict):
+            return None
+        battery = data.get("battery")
+        if self._key == "battery_power":
+            value = battery.get("power") if isinstance(battery, dict) else None
+            # gridX defines battery positive as discharge; keep raw sign.
+        elif self._key == "battery_soc":
+            value = battery.get("stateOfCharge") if isinstance(battery, dict) else None
+            if isinstance(value, (float, int)) and not isinstance(value, bool):
+                value *= 100
+        else:
+            value = data.get(self._key)
+        return float(value) if isinstance(value, (float, int)) and not isinstance(value, bool) else None
