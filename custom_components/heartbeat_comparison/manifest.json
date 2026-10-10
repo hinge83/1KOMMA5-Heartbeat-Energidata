@@ -1,9 +1,9 @@
 {
   "domain": "heartbeat_comparison",
-  "name": "Heartbeat beslutninger (sammenligning)",
-  "version": "0.1.2",
-  "documentation": "https://community.developer.gridx.de/t/gridx-api-documentation/213",
-  "issue_tracker": "https://community.developer.gridx.de/",
+  "name": "1KOMMA5° Heartbeat & Energidata (GridX)",
+  "version": "0.2.0",
+  "documentation": "https://github.com/hinge83/ha-heartbeat-comparison",
+  "issue_tracker": "https://github.com/hinge83/ha-heartbeat-comparison/issues",
   "integration_type": "service",
   "iot_class": "cloud_polling",
   "config_flow": true,
