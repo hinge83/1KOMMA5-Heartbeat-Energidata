@@ -1,15 +1,17 @@
 {
-  "title": "Heartbeat beslutninger (sammenligning)",
+  "title": "1KOMMA5° Heartbeat & Energidata (GridX)",
   "config": {
     "step": {
       "reauth_confirm": {
         "title": "Opdater adgangskode til 1KOMMA5°",
         "description": "Indtast den nye adgangskode for at fortsætte sammenligningen.",
-        "data": {"password": "Adgangskode"}
+        "data": {
+          "password": "Adgangskode"
+        }
       },
       "user": {
-        "title": "Forbind 1KOMMA5° Heartbeat",
-        "description": "Kun læsning af optimeringsbeslutninger. Adgangskoden opbevares i Home Assistants konfigurationspost. System-id kan stå tomt, hvis kontoen har ét anlæg.",
+        "title": "Forbind 1KOMMA5° Heartbeat & Energidata",
+        "description": "Læseadgang til GridX energi-, batteri- og optimeringsdata. Dine loginoplysninger gemmes i Home Assistant.",
         "data": {
           "username": "E-mail",
           "password": "Adgangskode",
@@ -23,6 +25,8 @@
       "multiple_systems": "Der er flere anlæg. Angiv system-id.",
       "system_not_found": "System-id findes ikke på kontoen."
     },
-    "abort": {"already_configured": "Dette anlæg er allerede tilføjet."}
+    "abort": {
+      "already_configured": "Dette anlæg er allerede tilføjet."
+    }
   }
 }
