@@ -1,10 +1,10 @@
 {
-  "title": "1KOMMA5° Heartbeat & Energidata (GridX)",
+  "title": "1KOMMA5° Heartbeat & Energidata",
   "config": {
     "step": {
       "reauth_confirm": {
         "title": "Opdater adgangskode til 1KOMMA5°",
-        "description": "Indtast den nye adgangskode for at fortsætte sammenligningen.",
+        "description": "Indtast den nye adgangskode for at fortsætte energioptimering og datahentning.",
         "data": {
           "password": "Adgangskode"
         }

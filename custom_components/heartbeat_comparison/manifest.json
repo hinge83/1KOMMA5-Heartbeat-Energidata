@@ -1,9 +1,9 @@
 {
   "domain": "heartbeat_comparison",
-  "name": "1KOMMA5° Heartbeat & Energidata (GridX)",
-  "version": "0.2.0",
-  "documentation": "https://github.com/hinge83/ha-heartbeat-comparison",
-  "issue_tracker": "https://github.com/hinge83/ha-heartbeat-comparison/issues",
+  "name": "1KOMMA5° Heartbeat & Energidata",
+  "version": "0.3.0",
+  "documentation": "https://github.com/hinge83/1KOMMA5-Heartbeat-Energidata",
+  "issue_tracker": "https://github.com/hinge83/1KOMMA5-Heartbeat-Energidata/issues",
   "integration_type": "service",
   "iot_class": "cloud_polling",
   "config_flow": true,

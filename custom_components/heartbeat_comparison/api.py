@@ -1,6 +1,6 @@
-"""Read-only client for the legacy 1KOMMA5° gridX API.
+"""Client for the legacy 1KOMMA5° gridX API.
 
-Only token, system list, live telemetry and optimization-decision GET requests are made.
+Reads telemetry/decisions and writes only the EMS terms setting when requested.
 No API response or credentials are logged.
 """
 
@@ -101,3 +101,44 @@ class HeartbeatClient:
         if not isinstance(data, dict):
             raise HeartbeatApiError("Uventet format for live-data")
         return data
+
+    async def energy_management(self, system_id: str) -> bool:
+        """Read the portal's Energy Management setting."""
+        data = await self._get(f"/systems/{system_id}")
+        ems = data.get("metadata", {}).get("energy", {}).get("ems", {}) if isinstance(data, dict) else {}
+        enabled = ems.get("agreedEMSTerms") if isinstance(ems, dict) else None
+        if not isinstance(enabled, bool):
+            raise HeartbeatApiError("Energy Management-status mangler")
+        return enabled
+
+    async def set_energy_management(self, system_id: str, enabled: bool) -> bool:
+        """Mirror the portal's PATCH and verify the persisted setting."""
+        if not isinstance(enabled, bool):
+            raise ValueError("enabled skal være bool")
+        path = f"/systems/{system_id}"
+        body = {"metadata": {"energy": {"ems": {"agreedEMSTerms": enabled}}}}
+        for attempt in range(2):
+            if not self._token or datetime.now(timezone.utc) >= self._expires:
+                await self._login()
+            try:
+                async with self._session.patch(
+                    f"{API_URL}{path}",
+                    headers={"Authorization": f"Bearer {self._token}"},
+                    json=body,
+                    timeout=20,
+                ) as response:
+                    if response.status == 401 and attempt == 0:
+                        self._token = None
+                        continue
+                    if response.status in (401, 403):
+                        raise HeartbeatAuthError("Ingen adgang til at ændre Energy Management")
+                    response.raise_for_status()
+                    break
+            except ClientResponseError as err:
+                raise HeartbeatApiError(f"gridX PATCH HTTP {err.status}") from err
+        else:
+            raise HeartbeatAuthError("Kan ikke godkende PATCH")
+        actual = await self.energy_management(system_id)
+        if actual != enabled:
+            raise HeartbeatApiError("Energy Management-ændring blev ikke bekræftet")
+        return actual
