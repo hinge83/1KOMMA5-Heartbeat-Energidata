@@ -1,0 +1,28 @@
+{
+  "title": "Heartbeat beslutninger (sammenligning)",
+  "config": {
+    "step": {
+      "reauth_confirm": {
+        "title": "Opdater adgangskode til 1KOMMA5°",
+        "description": "Indtast den nye adgangskode for at fortsætte sammenligningen.",
+        "data": {"password": "Adgangskode"}
+      },
+      "user": {
+        "title": "Forbind 1KOMMA5° Heartbeat",
+        "description": "Kun læsning af optimeringsbeslutninger. Adgangskoden opbevares i Home Assistants konfigurationspost. System-id kan stå tomt, hvis kontoen har ét anlæg.",
+        "data": {
+          "username": "E-mail",
+          "password": "Adgangskode",
+          "system_id": "System-id (valgfrit ved ét anlæg)"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "1KOMMA5° afviste login.",
+      "cannot_connect": "Forbindelsen eller dataformatet kunne ikke bekræftes.",
+      "multiple_systems": "Der er flere anlæg. Angiv system-id.",
+      "system_not_found": "System-id findes ikke på kontoen."
+    },
+    "abort": {"already_configured": "Dette anlæg er allerede tilføjet."}
+  }
+}
